@@ -1,0 +1,33 @@
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Audio files (for privacy)
+*.wav
+*.mp3
+*.m4a
+*.flac
+
+# Transcription outputs
+*.txt
+!README.md
+!docs/*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+build/
+dist/
+*.o
+*.so
+*.a
