@@ -1,4 +1,7 @@
-# Whisper Hotkey
+# 🎙️ Whisper Hotkey
+
+[![Tests](https://github.com/atkvishnu/whisper-hotkey-linux/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/atkvishnu/whisper-hotkey-linux/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Record speech with a desktop shortcut, press it again to stop, and paste the transcription. Speech recognition runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
@@ -13,7 +16,7 @@ Install Python 3.9+ and Git before running the installer. On macOS, the default 
 
 You can also provide dependencies manually with `--skip-deps`. This skips package installation, not dependency checks or engine/model downloads. Native Windows is not supported.
 
-## Installation
+## 📦 Installation
 
 ```sh
 git clone https://github.com/atkvishnu/whisper-hotkey-linux.git
@@ -40,7 +43,7 @@ Default installation locations:
 
 Reinstalling preserves your configuration choices and updates the selected model path. An existing whisper.cpp checkout with a different revision or local changes is left unchanged; choose a separate `--prefix` for a new installation.
 
-## Set up a shortcut
+## ⌨️ Set up a shortcut
 
 1. Run the launcher command printed by the installer with `doctor` appended. This checks dependencies without recording.
 2. Run the launcher once in a terminal to start recording, then again to stop. Verify that you can paste the result.
@@ -96,7 +99,7 @@ Relative XDG paths are ignored in favor of the defaults. State directories use m
 
 [Report a bug or suggest an improvement](https://github.com/atkvishnu/whisper-hotkey-linux/issues). Include your OS/distro, desktop environment, X11 or Wayland session type where applicable, command, reproduction steps, expected result, and error output. Remove private text from logs before posting. Keep feedback specific and respectful.
 
-## Development
+## 🧪 Development
 
 ```sh
 make check
