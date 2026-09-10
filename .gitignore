@@ -31,3 +31,8 @@ dist/
 *.o
 *.so
 *.a
+
+# Python validation artifacts
+__pycache__/
+*.pyc
+.venv/
