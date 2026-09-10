@@ -1,59 +1,52 @@
-# Contributing to Whisper Hotkey Transcribe
+# Contributing to Whisper Hotkey
 
-First off, thank you for considering contributing to Whisper Hotkey Transcribe! It's people like you that make this tool better for everyone.
+Bug reports, fixes, documentation improvements, and testing on Linux and macOS are welcome.
 
-## How Can I Contribute?
+## Reporting bugs and suggesting changes
 
-### Reporting Bugs
+Search the [existing issues](https://github.com/atkvishnu/whisper-hotkey/issues) before [opening a new issue](https://github.com/atkvishnu/whisper-hotkey/issues/new).
 
-- **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/atkvishnu/whisper-hotkey-transcribe/issues).
-- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/atkvishnu/whisper-hotkey-transcribe/issues/new).
-- Include your system information (OS, CPU, RAM)
-- Describe the exact steps to reproduce the problem
-- Include any error messages you see
+For a bug report, include:
 
-### Suggesting Enhancements
+- Your OS and version; on Linux, include the distribution, desktop environment, and X11 or Wayland session type.
+- The release or commit you are using, the command you ran, and any relevant configuration changes.
+- Steps to reproduce the problem, what you expected, and what happened.
+- Error output and, for installation or recording problems, the output of the installed launcher's `doctor` command if available.
 
-- Open an issue with the tag "enhancement"
-- Clearly describe the enhancement and its benefits
-- Provide examples of how the feature would be used
+Remove private text from logs before posting. For a feature request, describe the problem and give an example of how the change would help. Keep feedback specific and respectful.
 
-### Pull Requests
+## Pull requests
 
-1. Fork the repo and create your branch from `main`
-2. Make your changes
-3. Test your changes thoroughly
-4. Update documentation if needed
-5. Submit a pull request
+1. Fork the repository and create a branch from `main`.
+2. Keep the change focused. For larger changes, open an issue to discuss the approach first.
+3. Add or update tests for behavior changes and run the checks below.
+4. Update user-facing instructions when behavior or setup changes.
+5. Explain what changed, link any related issue, and list the checks and platforms you tested. Mention anything you could not test.
 
-### Code Style
+Use clear names and explain non-obvious behavior in comments. The installer and controller use Python's standard library and support Python 3.9+. Keep changes compatible with both Linux and macOS where applicable.
 
-- Use clear, descriptive variable names
-- Comment complex logic
-- Keep scripts readable and maintainable
-- Test on Ubuntu/Debian systems when possible
+## Testing
 
-### Testing Checklist
+Run the offline tests, shell syntax checks, and Python compilation from the repository root:
 
-Before submitting a PR, ensure:
-- [ ] The F9 hotkey works correctly
-- [ ] Audio recording starts and stops properly
-- [ ] Transcription completes without errors
-- [ ] Text is copied to clipboard
-- [ ] Notifications appear correctly
-- [ ] Installation script works on a fresh system
+```sh
+make check
+```
 
-## Ideas for Contributions
+CI runs these checks on Ubuntu and macOS with Python 3.9 and 3.13. For changes affecting installation, recording, transcription, or clipboard handling, also run the Linux integration container with Docker:
 
-- Support for other Linux distributions
-- Additional desktop environment support (KDE, XFCE, etc.)
-- Multiple language support
-- Custom hotkey configuration
-- GUI configuration tool
-- Performance optimizations
-- Better error handling
-- Integration with text editors
+```sh
+docker build -f tests/Dockerfile.integration -t whisper-hotkey-integration .
+docker run --rm --pull=never whisper-hotkey-integration
+```
 
-## Questions?
+Building the container needs internet access to install dependencies and download Whisper and its model. The integration test exercises virtual PulseAudio recording, transcription, and X11 and Wayland clipboard tools. It does not mount the host microphone or clipboard.
 
-Feel free to open an issue with the tag "question" if you need help!
+For desktop behavior changes, also check the affected platform in a real desktop session:
+
+- Run the installed launcher with `doctor` appended to check dependencies.
+- Start and stop recording using your configured shortcut, then verify the transcription can be pasted.
+- Check notifications when enabled and microphone permissions where applicable.
+- For installer changes, test a fresh installation and reinstalling over an existing configuration.
+
+The installer does not assign a shortcut; F9 is only an example. Automated checks do not verify physical microphones, desktop shortcuts, or macOS permission prompts. See the [README](README.md) for setup and configuration details.
