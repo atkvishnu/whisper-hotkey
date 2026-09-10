@@ -1,169 +1,113 @@
-# 🎙️ Whisper Hotkey Transcribe
+# Whisper Hotkey
 
-Instantly transcribe your voice to text with a single keypress using OpenAI's Whisper running locally on your machine. Press F9 to start recording, press F9 again to stop and get the transcription copied to your clipboard!
+Record speech with a desktop shortcut, press it again to stop, and paste the transcription. Speech recognition runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
-## ✨ Features
+## Requirements
 
-- **One-key operation**: Press F9 to start/stop recording
-- **Instant transcription**: Audio is processed locally using whisper.cpp
-- **Clipboard integration**: Transcribed text is automatically copied to clipboard
-- **Visual feedback**: Desktop notifications show recording status
-- **CPU optimized**: Runs efficiently without GPU (perfect for laptops)
-- **Privacy first**: Everything runs locally, no internet required
+Install Python 3.9+ and Git before running the installer. On macOS, the default installation uses Homebrew; install Xcode Command Line Tools as well.
 
-## 🖥️ Tested System
+| Platform | Dependency installation | Recording | Clipboard |
+| --- | --- | --- | --- |
+| Linux | apt-get, dnf, pacman, or zypper | PipeWire, PulseAudio, or ALSA | `wl-copy` on Wayland; `xclip` or `xsel` on X11 |
+| macOS | Homebrew | SoX `rec` | `pbcopy` |
 
-This setup was tested and runs perfectly on:
-- **OS**: Ubuntu 22.04.5 LTS
-- **CPU**: Intel Ultra 9 185H (22 threads)
-- **RAM**: 64GB
-- **Desktop**: GNOME 42.9
+You can also provide dependencies manually with `--skip-deps`. This skips package installation, not dependency checks or engine/model downloads. Native Windows is not supported.
 
-## 📋 Prerequisites
+## Installation
 
-- Ubuntu/Debian-based Linux distribution
-- GNOME desktop environment (for keybinding setup)
-- Basic development tools (`git`, `make`, `gcc`)
-- Audio recording tools (`arecord` from `alsa-utils`)
-- Clipboard tool (`xclip` or `xsel`)
-
-## 🚀 Installation
-
-### Quick Install
-
-```bash
-# Clone this repository
-git clone https://github.com/atkvishnu/whisper-hotkey-transcribe.git
-cd whisper-hotkey-transcribe
-
-# Run the installation script
-chmod +x install.sh
+```sh
+git clone https://github.com/atkvishnu/whisper-hotkey-linux.git
+cd whisper-hotkey-linux
+./install.sh --dry-run
 ./install.sh
 ```
 
-### Manual Installation
+The installer installs dependencies, builds a pinned whisper.cpp release with CMake, verifies the downloaded model, and prints your launcher command. Internet access is needed for installation and model downloads; transcription runs offline.
 
-1. **Install dependencies**:
-```bash
-sudo apt update
-sudo apt install build-essential git alsa-utils xclip libnotify-bin
+The default model is multilingual `base`. Use `--model tiny.en` for the smaller English-only model. Transcription speed and accuracy depend on the model, hardware, and audio.
+
+```sh
+./install.sh --help
+./install.sh --model tiny.en
+./install.sh --prefix "$HOME/Apps/Whisper Hotkey"
+./install.sh --skip-deps
 ```
 
-2. **Clone and build whisper.cpp**:
-```bash
-cd ~/Projects
-git clone https://github.com/ggerganov/whisper.cpp.git
-cd whisper.cpp
-make -j$(nproc)
+Default installation locations:
+
+- Linux: `$XDG_DATA_HOME/whisper-hotkey`, or `~/.local/share/whisper-hotkey` when unset.
+- macOS: `~/Library/Application Support/whisper-hotkey`.
+
+Reinstalling preserves your configuration choices and updates the selected model path. An existing whisper.cpp checkout with a different revision or local changes is left unchanged; choose a separate `--prefix` for a new installation.
+
+## Set up a shortcut
+
+1. Run the launcher command printed by the installer with `doctor` appended. This checks dependencies without recording.
+2. Run the launcher once in a terminal to start recording, then again to stop. Verify that you can paste the result.
+3. Assign the printed launcher command to an available key in your desktop's shortcut settings. On macOS, use a Shortcut with a **Run Shell Script** action and [assign it a keyboard shortcut](https://support.apple.com/guide/shortcuts-mac/apd163eb9f95/mac).
+
+The installer does not change existing shortcuts. F9 is one option; choose another key if your desktop already uses it. Test the shortcut itself and grant microphone access to the application that launches it when requested.
+
+## Usage
+
+Press the shortcut to start recording. Press it again to stop, wait for transcription to finish, then paste. Notifications are optional; run the launcher in a terminal to see error details.
+
+The launcher accepts `toggle` (the default), `stop`, `status`, and `doctor`. To transcribe an existing file using your default installation:
+
+```sh
+./scripts/whisper-toggle.sh transcribe /path/to/speech.wav --no-copy
 ```
 
-3. **Download a Whisper model**:
-```bash
-# Download the base model (good balance of speed and accuracy)
-bash ./models/download-ggml-model.sh base
+Input must be 16 kHz, mono, 16-bit PCM WAV, at least 0.1 seconds long. `--no-copy` prints the transcript without changing the clipboard; it still saves the recovery transcript described below. For a custom installation directory, use its installed launcher instead.
+
+## Configuration
+
+Edit `config.json` in the installation directory.
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `backend` | `auto` | Recorder: `pw-record`, `parecord`, `arecord`, or `sox` |
+| `clipboard` | `auto` | Clipboard tool: `wl-copy`, `xclip`, `xsel`, or `pbcopy` |
+| `language` | `auto` | Detect the language, or use a code such as `en` or `fr` |
+| `threads` | `4` | CPU threads for transcription |
+| `max_seconds` | `300` | Recording limit; reaching it stops capture and discards the audio |
+| `transcribe_timeout` | `300` | Maximum seconds allowed for transcription |
+| `notifications` | `true` | Show recording and transcription status |
+
+On Linux, `auto` selects the first installed recorder in this order: `pw-record`, `parecord`, `arecord`. If that recorder cannot connect to your audio server, select a working backend explicitly. The optional `device` setting selects an ALSA device, PulseAudio source, or PipeWire target; for SoX, select the default input in macOS Sound settings.
+
+## Storage and privacy
+
+Recordings and temporary inference files are removed after a session, including handled failures. An abrupt shutdown or forced process kill can leave temporary files; the next idle control command or standalone transcription cleans them up.
+
+One recovery file, `last-transcript.txt`, remains until the next successful transcription replaces it or you delete it. State and this transcript are stored in:
+
+- Linux: `$XDG_STATE_HOME/whisper-hotkey`, or `~/.local/state/whisper-hotkey` when unset.
+- macOS: `~/Library/Caches/whisper-hotkey`.
+
+Relative XDG paths are ignored in favor of the defaults. State directories use mode `0700`; newly written state and transcripts use `0600`. Notifications contain status only. Your clipboard and clipboard-history applications manage their own retention.
+
+## Troubleshooting and feedback
+
+- **Shortcut does nothing:** run the printed launcher in a terminal, check for a key conflict, and check microphone permissions in the app that launches it.
+- **No audio:** check the default microphone and select a working recording backend. Run `doctor` to check tool availability.
+- **Clipboard fails:** if copying fails after transcription, the error includes the path to `last-transcript.txt`. Wayland needs `wl-copy`; X11 needs `xclip` or `xsel`. A headless shell can use `transcribe --no-copy`.
+- **Whisper fails:** run `doctor` and check the executable/model paths. Failed transcription is not copied to the clipboard.
+
+[Report a bug or suggest an improvement](https://github.com/atkvishnu/whisper-hotkey-linux/issues). Include your OS/distro, desktop environment, X11 or Wayland session type where applicable, command, reproduction steps, expected result, and error output. Remove private text from logs before posting. Keep feedback specific and respectful.
+
+## Development
+
+```sh
+make check
+docker build -f tests/Dockerfile.integration -t whisper-hotkey-integration .
+docker run --rm --pull=never whisper-hotkey-integration
 ```
 
-4. **Set up the transcription script**:
-```bash
-# Copy the script from this repo
-cp scripts/whisper-toggle.sh ~/Projects/whisper.cpp/
-chmod +x ~/Projects/whisper.cpp/whisper-toggle.sh
-```
+The controller uses Python's standard library. `make check` runs offline tests, shell syntax checks, and Python compilation. CI runs these checks on Linux and macOS. The Linux integration container builds Whisper and exercises virtual PulseAudio recording, transcription, and real X11 and Wayland clipboard tools without mounting the host microphone or clipboard.
 
-5. **Configure the F9 hotkey**:
-   
-   **Method 1: Manual Configuration (Recommended)**
-   - Open Settings → Keyboard → View and Customize Shortcuts → Custom Shortcuts
-   - Click the + button to add a new shortcut
-   - Fill in the following:
-     - Name: `Whisper Transcribe`
-     - Command: `/home/atkvishnu/Projects/whisper.cpp/whisper-toggle.sh`
-     - Shortcut: Click "Set Shortcut" and press F9
-   
-   **Method 2: Command Line (May require logout)**
-   ```bash
-   # The install script attempts this automatically
-   gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
-   gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ name 'Whisper Transcribe'
-   gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ command '/home/atkvishnu/Projects/whisper.cpp/whisper-toggle.sh'
-   gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ binding 'F9'
-   ```
+These checks do not certify physical microphones, desktop hotkeys, or macOS permission behavior. Test those in the desktop session where you intend to use the tool.
 
-## 🎯 Usage
+## License
 
-1. **Press F9** - You'll see a notification "Recording started... Press F9 again to stop"
-2. **Speak clearly** into your microphone
-3. **Press F9 again** - Recording stops, audio is transcribed
-4. **Check your clipboard** - The transcribed text is automatically copied!
-
-## 🔧 Configuration
-
-The script can be customized by editing `whisper-toggle.sh`:
-
-- **Model selection**: Change `MODEL_PATH` to use different Whisper models
-- **Audio quality**: Modify `arecord` parameters for different sample rates
-- **File retention**: Adjust how many recordings to keep (default: 10)
-
-### Available Models
-
-- `tiny` - Fastest, lowest accuracy (39 MB)
-- `base` - Good balance (74 MB) - **Recommended**
-- `small` - Better accuracy (244 MB)
-- `medium` - High accuracy (769 MB)
-- `large` - Best accuracy (1550 MB)
-
-## 📁 File Locations
-
-- Recordings: `/tmp/whisper-recordings/recording_*.wav`
-- Transcripts: `/tmp/whisper-recordings/transcript_*.txt`
-- PID file: `/tmp/whisper-recording.pid`
-
-## 🐛 Troubleshooting
-
-### F9 key not working
-1. Log out and log back in after setting up the keybinding
-2. Or restart GNOME Shell: Alt+F2, type 'r', press Enter
-
-### "Library not found" errors
-The script includes the necessary library paths. If you still get errors:
-```bash
-export LD_LIBRARY_PATH=/path/to/whisper.cpp/build/src:/path/to/whisper.cpp/build/ggml/src:$LD_LIBRARY_PATH
-```
-
-### No audio recording
-Check your microphone:
-```bash
-# List recording devices
-arecord -l
-
-# Test recording
-arecord -d 5 test.wav
-aplay test.wav
-```
-
-### Transcription accuracy issues
-- Speak clearly and avoid background noise
-- Try a larger model for better accuracy
-- Ensure audio levels are appropriate
-
-## 🤝 Contributing
-
-Feel free to open issues or submit pull requests! Some ideas for improvements:
-- Support for other desktop environments
-- Additional hotkey configurations  
-- Integration with other applications
-- Support for multiple languages
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) - Georgi Gerganov's excellent C++ port of Whisper
-- [OpenAI Whisper](https://github.com/openai/whisper) - The original Whisper model
-- Tested and developed on an Intel Ultra 9 185H system with 64GB RAM
-
----
-
-Made with ❤️ for the open-source community. If you find this useful, please star the repository!
+[MIT](LICENSE). See [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and [Whisper](https://github.com/openai/whisper) for the engine and model licenses.
