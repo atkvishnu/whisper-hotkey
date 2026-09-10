@@ -1,6 +1,6 @@
 # 🎙️ Whisper Hotkey
 
-[![Tests](https://github.com/atkvishnu/whisper-hotkey-linux/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/atkvishnu/whisper-hotkey-linux/actions/workflows/tests.yml)
+[![Tests](https://github.com/atkvishnu/whisper-hotkey/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/atkvishnu/whisper-hotkey/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Record speech with a desktop shortcut, press it again to stop, and paste the transcription. Speech recognition runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
@@ -19,8 +19,8 @@ You can also provide dependencies manually with `--skip-deps`. This skips packag
 ## 📦 Installation
 
 ```sh
-git clone https://github.com/atkvishnu/whisper-hotkey-linux.git
-cd whisper-hotkey-linux
+git clone https://github.com/atkvishnu/whisper-hotkey.git
+cd whisper-hotkey
 ./install.sh --dry-run
 ./install.sh
 ```
@@ -97,7 +97,7 @@ Relative XDG paths are ignored in favor of the defaults. State directories use m
 - **Clipboard fails:** if copying fails after transcription, the error includes the path to `last-transcript.txt`. Wayland needs `wl-copy`; X11 needs `xclip` or `xsel`. A headless shell can use `transcribe --no-copy`.
 - **Whisper fails:** run `doctor` and check the executable/model paths. Failed transcription is not copied to the clipboard.
 
-[Report a bug or suggest an improvement](https://github.com/atkvishnu/whisper-hotkey-linux/issues). Include your OS/distro, desktop environment, X11 or Wayland session type where applicable, command, reproduction steps, expected result, and error output. Remove private text from logs before posting. Keep feedback specific and respectful.
+[Report a bug or suggest an improvement](https://github.com/atkvishnu/whisper-hotkey/issues). Include your OS/distro, desktop environment, X11 or Wayland session type where applicable, command, reproduction steps, expected result, and error output. Remove private text from logs before posting. Keep feedback specific and respectful.
 
 ## 🧪 Development
 
